@@ -756,12 +756,16 @@ const selectedJobCandidates = computed(() => {
   display: flex;
   gap: 1.5rem;
   margin-bottom: 1rem;
+  width: 100%;
 }
 
 .metric {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex: 1;    
+  align-items: center; 
+  text-align: center;        
 }
 
 .metric-label {
@@ -781,6 +785,7 @@ const selectedJobCandidates = computed(() => {
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   display: inline-block;
+  width: 100%;
 }
 
 .job-footer {
