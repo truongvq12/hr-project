@@ -27,17 +27,13 @@
             <i class="nav-icon">📊</i>
             <span>Tổng quan</span>
           </router-link>
-          <router-link to="/cv-analysis" class="nav-item" :class="{ active: $route.path === '/cv-analysis' }">
-            <i class="nav-icon">📄</i>
-            <span>Phân tích CV</span>
+          <router-link to="/cv-database" class="nav-item" :class="{ active: $route.path === '/cv-database' }">
+            <i class="nav-icon">🗄️</i>
+            <span>List CV</span>
           </router-link>
           <router-link to="/jd-evaluation" class="nav-item" :class="{ active: $route.path === '/jd-evaluation' }">
             <i class="nav-icon">👥</i>
-            <span>Đánh giá JD</span>
-          </router-link>
-          <router-link to="/cv-database" class="nav-item" :class="{ active: $route.path === '/cv-database' }">
-            <i class="nav-icon">🗄️</i>
-            <span>Cơ sở dữ liệu CV</span>
+            <span>List JD</span>
           </router-link>
           <router-link to="/reports" class="nav-item" :class="{ active: $route.path === '/reports' }">
             <i class="nav-icon">📈</i>

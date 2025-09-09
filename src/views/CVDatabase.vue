@@ -1,8 +1,15 @@
 <template>
   <div class="cv-database">
     <div class="page-header">
-      <h1>Cơ sở dữ liệu CV</h1>
-      <p>Tìm kiếm và quản lý hồ sơ ứng viên</p>
+      <div class="header-content">
+        <div class="header-text">
+          <h1>List CV</h1>
+          <p>Tìm kiếm và quản lý hồ sơ ứng viên</p>
+        </div>
+        <button @click="goToCVAnalysis" class="btn btn-primary analysis-btn">
+          📊 Import CV
+        </button>
+      </div>
     </div>
 
     <div class="search-section">
@@ -337,6 +344,9 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const searchQuery = ref('')
 const viewMode = ref<'grid' | 'list'>('grid')
@@ -692,6 +702,10 @@ const getMatchClass = (score: number) => {
   if (score >= 60) return 'medium'
   return 'low'
 }
+
+const goToCVAnalysis = () => {
+  router.push('/cv-analysis')
+}
 </script>
 
 <style scoped>
@@ -703,17 +717,40 @@ const getMatchClass = (score: number) => {
   margin-bottom: 2rem;
 }
 
-.page-header h1 {
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.header-text h1 {
   color: #2c3e50;
   margin-bottom: 0.5rem;
   font-size: 2rem;
   font-weight: bold;
 }
 
-.page-header p {
+.header-text p {
   color: #666;
   margin: 0;
   font-size: 1.1rem;
+}
+
+.analysis-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.analysis-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 
 .search-section {
@@ -1293,6 +1330,17 @@ const getMatchClass = (score: number) => {
 }
 
 @media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .analysis-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
   .search-bar {
     flex-direction: column;
   }

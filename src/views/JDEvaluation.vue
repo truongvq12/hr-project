@@ -1,7 +1,7 @@
 <template>
   <div class="jd-evaluation">
     <div class="page-header">
-      <h1>Đánh giá JD</h1>
+      <h1>List JD</h1>
       <p>Danh sách các JD đã tạo và ứng viên phù hợp</p>
     </div>
 

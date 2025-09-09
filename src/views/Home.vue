@@ -90,7 +90,7 @@
             description="Phân tích CV ứng viên"
             icon="📤"
             color="blue"
-            @click="goToCVAnalysis"
+            @click="goToCVDatabase"
           />
           <QuickAction
             title="Tìm kiếm ứng viên"
@@ -119,10 +119,6 @@ import ActivityItem from '@/components/ActivityItem.vue'
 import QuickAction from '@/components/QuickAction.vue'
 
 const router = useRouter()
-
-const goToCVAnalysis = () => {
-  router.push('/cv-analysis')
-}
 
 const goToCVDatabase = () => {
   router.push('/cv-database')
