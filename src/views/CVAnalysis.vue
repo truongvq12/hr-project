@@ -60,7 +60,17 @@
             <p>Upload CV để bắt đầu phân tích và trích xuất thông tin</p>
           </div>
           <div v-else class="analysis-result">
-            <h3>Kết quả phân tích</h3>
+            <div class="result-header">
+              <h3>Kết quả phân tích</h3>
+              <button 
+                @click="saveToDatabase" 
+                class="btn btn-success save-btn"
+                :disabled="isSaving"
+              >
+                <span v-if="isSaving">💾 Đang lưu...</span>
+                <span v-else>💾 Lưu DB</span>
+              </button>
+            </div>
             <div class="result-content">
               <div class="candidate-summary">
                 <div class="candidate-avatar">{{ analysisResult.name.charAt(0) }}</div>
@@ -118,6 +128,7 @@ const fileInput = ref<HTMLInputElement>()
 const uploadedFile = ref<File | null>(null)
 const analysisResult = ref<any>(null)
 const isAnalyzing = ref(false)
+const isSaving = ref(false)
 
 const isPDF = computed(() => {
   return uploadedFile.value?.type === 'application/pdf'
@@ -168,6 +179,27 @@ const analyzeCurrentFile = () => {
   if (uploadedFile.value) {
     isAnalyzing.value = true
     analyzeCV(uploadedFile.value)
+  }
+}
+
+const saveToDatabase = async () => {
+  if (!analysisResult.value) return
+  
+  try {
+    isSaving.value = true
+    
+    // Simulate API call to save to database
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    // Show success message
+    alert('✅ Đã lưu thông tin ứng viên vào cơ sở dữ liệu thành công!')
+    
+    // Reset states
+    isSaving.value = false
+  } catch (error) {
+    console.error('Error saving to database:', error)
+    alert('❌ Có lỗi xảy ra khi lưu vào cơ sở dữ liệu!')
+    isSaving.value = false
   }
 }
 
@@ -367,6 +399,10 @@ const analyzeCV = (file: File) => {
 .upload-actions {
   margin-top: 1rem;
   text-align: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .analyze-btn {
@@ -419,9 +455,18 @@ const analyzeCV = (file: File) => {
   margin-bottom: 0.5rem;
 }
 
-.analysis-result h3 {
-  color: #2c3e50;
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.result-header h3 {
+  color: #2c3e50;
+  margin: 0;
   font-size: 1.2rem;
 }
 
@@ -556,6 +601,35 @@ const analyzeCV = (file: File) => {
   transform: translateY(-1px);
 }
 
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.btn-success:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-success:disabled:hover {
+  background-color: #6c757d;
+  transform: none;
+}
+
+.save-btn {
+  padding: 0.5rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 120px;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .analysis-content {
     grid-template-columns: 1fr;
@@ -569,6 +643,27 @@ const analyzeCV = (file: File) => {
   .candidate-summary {
     flex-direction: column;
     text-align: center;
+  }
+  
+  .result-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .save-btn {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .upload-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .analyze-btn {
+    width: 100%;
+    min-width: auto;
   }
 }
 </style>
