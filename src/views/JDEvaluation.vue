@@ -113,8 +113,23 @@
               <div class="job-meta-info">
                 <span class="department">{{ selectedJob?.department }}</span>
                 <span class="location">{{ selectedJob?.location }}</span>
-                <div class="job-status" :class="`job-status--${selectedJob?.status}`">
-                  {{ selectedJob?.statusText }}
+                <div class="job-status-container">
+                  <div v-if="!isEditingStatus" class="job-status" :class="`job-status--${selectedJob?.status}`" @click="startEditStatus">
+                    {{ selectedJob?.statusText }}
+                    <span class="edit-icon">✏️</span>
+                  </div>
+                  <div v-else class="status-edit-form">
+                    <select v-model="editingStatusText" class="status-select">
+                      <option value="Đang tuyển">Đang tuyển</option>
+                      <option value="Tạm dừng">Tạm dừng</option>
+                      <option value="Đã đóng">Đã đóng</option>
+                      <option value="Đã hoàn thành">Đã hoàn thành</option>
+                    </select>
+                    <div class="status-edit-actions">
+                      <button @click="saveStatusChange" class="btn btn-sm btn-success">✓</button>
+                      <button @click="cancelStatusEdit" class="btn btn-sm btn-secondary">✕</button>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="job-metrics-summary">
@@ -278,12 +293,23 @@
             </div>
             <div class="form-group">
               <label class="form-label">Mức lương</label>
-              <input
+              <select
                 v-model="newJD.salary"
-                type="text"
                 class="form-control"
-                placeholder="Ví dụ: 15-25 triệu"
-              />
+              >
+                <option value="">Chọn mức lương</option>
+                <option value="Dưới 10 triệu">Dưới 10 triệu</option>
+                <option value="10-15 triệu">10-15 triệu</option>
+                <option value="15-20 triệu">15-20 triệu</option>
+                <option value="20-25 triệu">20-25 triệu</option>
+                <option value="25-30 triệu">25-30 triệu</option>
+                <option value="30-40 triệu">30-40 triệu</option>
+                <option value="40-50 triệu">40-50 triệu</option>
+                <option value="50-70 triệu">50-70 triệu</option>
+                <option value="70-100 triệu">70-100 triệu</option>
+                <option value="Trên 100 triệu">Trên 100 triệu</option>
+                <option value="Thỏa thuận">Thỏa thuận</option>
+              </select>
             </div>
           </div>
           
@@ -318,6 +344,8 @@ const searchQuery = ref('')
 const showCreateModal = ref(false)
 const showJobDetailsModal = ref(false)
 const selectedJob = ref<any>(null)
+const isEditingStatus = ref(false)
+const editingStatusText = ref('')
 
 const newJD = reactive({
   position: '',
@@ -529,6 +557,47 @@ const selectedJobCandidates = computed(() => {
   
   return mockCandidates.slice(0, 3)
 })
+
+// Status editing methods
+const startEditStatus = () => {
+  isEditingStatus.value = true
+  editingStatusText.value = selectedJob.value?.statusText || ''
+}
+
+const saveStatusChange = () => {
+  if (selectedJob.value) {
+    selectedJob.value.statusText = editingStatusText.value
+    
+    // Update status based on statusText
+    switch (editingStatusText.value) {
+      case 'Đang tuyển':
+        selectedJob.value.status = 'active'
+        break
+      case 'Tạm dừng':
+        selectedJob.value.status = 'paused'
+        break
+      case 'Đã đóng':
+      case 'Đã hoàn thành':
+        selectedJob.value.status = 'closed'
+        break
+    }
+    
+    // Update in jobs array
+    const jobIndex = jobs.value.findIndex(job => job.id === selectedJob.value.id)
+    if (jobIndex !== -1) {
+      jobs.value[jobIndex] = { ...selectedJob.value }
+    }
+    
+    console.log('Status updated:', selectedJob.value.statusText)
+  }
+  
+  isEditingStatus.value = false
+}
+
+const cancelStatusEdit = () => {
+  isEditingStatus.value = false
+  editingStatusText.value = ''
+}
 </script>
 
 <style scoped>
@@ -712,6 +781,16 @@ const selectedJobCandidates = computed(() => {
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.job-status:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .job-status--active {
@@ -727,6 +806,72 @@ const selectedJobCandidates = computed(() => {
 .job-status--closed {
   background-color: #f8d7da;
   color: #721c24;
+}
+
+.job-status-container {
+  position: relative;
+}
+
+.edit-icon {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.job-status:hover .edit-icon {
+  opacity: 1;
+}
+
+.status-edit-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 2px solid #007bff;
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+}
+
+.status-select {
+  border: none;
+  outline: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: transparent;
+  color: #2c3e50;
+  cursor: pointer;
+}
+
+.status-edit-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
 }
 
 .job-meta {
@@ -1164,7 +1309,7 @@ const selectedJobCandidates = computed(() => {
 }
 
 .btn {
-  padding: 0.75rem 1.5rem;
+  /* padding: 0.75rem 1.5rem; */
   border: none;
   border-radius: 4px;
   cursor: pointer;
