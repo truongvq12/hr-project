@@ -146,7 +146,28 @@
     </div>
 
     <div class="candidates-section">
-      <div v-if="viewMode === 'grid'" class="candidates-grid">
+      <!-- Loading state -->
+      <div v-if="loading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Đang tải danh sách CV...</p>
+      </div>
+      
+      <!-- Error state -->
+      <div v-else-if="error" class="error-state">
+        <div class="error-icon">⚠️</div>
+        <p>{{ error }}</p>
+        <button @click="loadCVs" class="btn btn-primary">Thử lại</button>
+      </div>
+      
+      <!-- Empty state -->
+      <div v-else-if="candidates.length === 0" class="empty-state">
+        <div class="empty-icon">📄</div>
+        <p>Chưa có CV nào trong hệ thống</p>
+        <button @click="goToCVAnalysis" class="btn btn-primary">Import CV đầu tiên</button>
+      </div>
+      
+      <!-- CV List -->
+      <div v-else-if="viewMode === 'grid'" class="candidates-grid">
         <div 
           v-for="candidate in filteredCandidates" 
           :key="candidate.id" 
@@ -154,7 +175,7 @@
           @click="viewCandidate(candidate)"
         >
           <div class="candidate-avatar">
-            <span>{{ candidate.initials }}</span>
+            <span>{{ getInitials(candidate.name) }}</span>
           </div>
           
           <div class="candidate-info">
@@ -194,11 +215,11 @@
             </div>
 
             <div class="candidate-footer">
-              <div class="match-score" :class="getMatchClass(candidate.matchScore)">
-                {{ candidate.matchScore }}% phù hợp
+              <div class="match-score" :class="getMatchClass(getMatchScore(candidate))">
+                {{ getMatchScore(candidate) }}% phù hợp
               </div>
               <div class="candidate-date">
-                {{ candidate.dateAdded }}
+                {{ formatDate(candidate.created_at) }}
               </div>
             </div>
           </div>
@@ -213,7 +234,7 @@
           @click="viewCandidate(candidate)"
         >
           <div class="candidate-avatar-information">
-            <span>{{ candidate.initials }}</span>
+            <span>{{ getInitials(candidate.name) }}</span>
           </div>
           
           <div class="candidate-info">
@@ -231,11 +252,11 @@
           </div>
 
           <div class="candidate-meta">
-            <div class="match-score" :class="getMatchClass(candidate.matchScore)">
-              {{ candidate.matchScore }}% phù hợp
+            <div class="match-score" :class="getMatchClass(getMatchScore(candidate))">
+              {{ getMatchScore(candidate) }}% phù hợp
             </div>
             <div class="candidate-date">
-              {{ candidate.dateAdded }}
+              {{ formatDate(candidate.created_at) }}
             </div>
           </div>
         </div>
@@ -343,8 +364,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { cvService } from '@/api/cvService'
+import type { CVAnalysisResponse } from '@/api/cvService'
 
 const router = useRouter()
 
@@ -397,188 +420,59 @@ const locationOptions = [
   { value: 'other', label: 'Khác' }
 ]
 
-const candidates = ref([
-  {
-    id: 1,
-    name: 'Nguyễn Văn An',
-    position: 'Senior Frontend Developer',
-    email: 'nguyenvanan@email.com',
-    phone: '+84 123 456 789',
-    location: 'Hà Nội',
-    salary: '20-30 triệu',
-    skills: ['JavaScript', 'React', 'TypeScript'],
-    matchScore: 92,
-    dateAdded: '2024-01-15',
-    initials: 'AN',
-    experience: [
-      {
-        id: 1,
-        title: 'Senior Frontend Developer',
-        company: 'TechCorp Vietnam',
-        duration: '2021 - Hiện tại',
-        description: 'Phát triển và duy trì các ứng dụng web sử dụng React và TypeScript'
-      }
-    ],
-    education: [
-      {
-        id: 1,
-        degree: 'Cử nhân Công nghệ Thông tin',
-        school: 'Đại học Bách Khoa Hà Nội',
-        year: '2018'
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Trần Thị Bình',
-    position: 'Product Manager',
-    email: 'tranthibinh@email.com',
-    phone: '+84 987 654 321',
-    location: 'TP. Hồ Chí Minh',
-    salary: '30-50 triệu',
-    skills: ['Product Strategy', 'Agile', 'Data Analysis'],
-    matchScore: 87,
-    dateAdded: '2024-01-14',
-    initials: 'TB',
-    experience: [
-      {
-        id: 1,
-        title: 'Product Manager',
-        company: 'StartupXYZ',
-        duration: '2020 - Hiện tại',
-        description: 'Quản lý sản phẩm và phát triển chiến lược kinh doanh'
-      }
-    ],
-    education: [
-      {
-        id: 1,
-        degree: 'Thạc sĩ Quản trị Kinh doanh',
-        school: 'Đại học Kinh tế TP.HCM',
-        year: '2019'
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Lê Hoàng Cường',
-    position: 'DevOps Engineer',
-    email: 'lehoangcuong@email.com',
-    phone: '+84 555 123 456',
-    location: 'Đà Nẵng',
-    salary: '15-20 triệu',
-    skills: ['AWS', 'Docker', 'Kubernetes'],
-    matchScore: 76,
-    dateAdded: '2024-01-13',
-    initials: 'LC',
-    experience: [
-      {
-        id: 1,
-        title: 'DevOps Engineer',
-        company: 'CloudTech Solutions',
-        duration: '2021 - Hiện tại',
-        description: 'Triển khai và quản lý hạ tầng cloud trên AWS'
-      }
-    ],
-    education: [
-      {
-        id: 1,
-        degree: 'Cử nhân Kỹ thuật Phần mềm',
-        school: 'Đại học Đà Nẵng',
-        year: '2020'
-      }
-    ]
-  },
-  {
-    id: 4,
-    name: 'Phạm Thị Dung',
-    position: 'UX Designer',
-    email: 'phamthidung@email.com',
-    phone: '+84 333 777 999',
-    location: 'Hà Nội',
-    salary: '18-25 triệu',
-    skills: ['Figma', 'User Research', 'Prototyping'],
-    matchScore: 84,
-    dateAdded: '2024-01-12',
-    initials: 'PD',
-    experience: [
-      {
-        id: 1,
-        title: 'UX Designer',
-        company: 'DesignStudio',
-        duration: '2022 - Hiện tại',
-        description: 'Thiết kế trải nghiệm người dùng cho các ứng dụng di động'
-      }
-    ],
-    education: [
-      {
-        id: 1,
-        degree: 'Cử nhân Thiết kế Đồ họa',
-        school: 'Đại học Mỹ thuật Công nghiệp',
-        year: '2021'
-      }
-    ]
-  },
-  {
-    id: 5,
-    name: 'Hoàng Văn Em',
-    position: 'Backend Developer',
-    email: 'hoangvanem@email.com',
-    phone: '+84 444 888 222',
-    location: 'TP. Hồ Chí Minh',
-    salary: '12-18 triệu',
-    skills: ['Java', 'Spring Boot', 'MySQL'],
-    matchScore: 68,
-    dateAdded: '2024-01-11',
-    initials: 'HE',
-    experience: [
-      {
-        id: 1,
-        title: 'Backend Developer',
-        company: 'WebDev Agency',
-        duration: '2023 - Hiện tại',
-        description: 'Phát triển API và dịch vụ backend sử dụng Java Spring'
-      }
-    ],
-    education: [
-      {
-        id: 1,
-        degree: 'Cử nhân Công nghệ Thông tin',
-        school: 'Đại học Công nghệ TP.HCM',
-        year: '2022'
-      }
-    ]
-  },
-  {
-    id: 6,
-    name: 'Võ Thị Phương',
-    position: 'Data Analyst',
-    email: 'vothiphuong@email.com',
-    phone: '+84 666 111 333',
-    location: 'Đà Nẵng',
-    salary: '16-22 triệu',
-    skills: ['Python', 'SQL', 'Tableau'],
-    matchScore: 79,
-    dateAdded: '2024-01-10',
-    initials: 'VP',
-    experience: [
-      {
-        id: 1,
-        title: 'Data Analyst',
-        company: 'DataInsights Co.',
-        duration: '2022 - Hiện tại',
-        description: 'Phân tích dữ liệu và tạo báo cáo kinh doanh'
-      }
-    ],
-    education: [
-      {
-        id: 1,
-        degree: 'Cử nhân Thống kê',
-        school: 'Đại học Khoa học Tự nhiên',
-        year: '2021'
-      }
-    ]
+// CV data from API
+const candidates = ref<CVAnalysisResponse[]>([])
+const loading = ref(false)
+const error = ref('')
+
+// Load CVs from API
+const loadCVs = async () => {
+  try {
+    loading.value = true
+    error.value = ''
+    
+    const response = await cvService.getCVs()
+    candidates.value = response || []
+    
+    console.log('✅ Loaded CVs from API:', candidates.value.length)
+    console.log('📊 CVs data:', candidates.value)
+  } catch (err) {
+    console.error('❌ Error loading CVs:', err)
+    error.value = 'Không thể tải danh sách CV. Vui lòng thử lại.'
+    
+    // Fallback to empty array
+    candidates.value = []
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// Load CVs when component mounts
+onMounted(() => {
+  loadCVs()
+})
+
+// Helper function to get initials from name
+const getInitials = (name: string) => {
+  return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase()
+}
+
+// Helper function to get match score
+const getMatchScore = (candidate: CVAnalysisResponse) => {
+  return candidate.match_score || 0
+}
+
+// Helper function to get match level
+const getMatchLevel = (candidate: CVAnalysisResponse) => {
+  return candidate.match_level || 'low'
+}
+
+// Helper function to format date
+const formatDate = (dateString: string) => {
+  if (!dateString) return 'N/A'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('vi-VN')
+}
 
 const filteredCandidates = computed(() => {
   return candidates.value.filter(candidate => {
@@ -1387,5 +1281,51 @@ const goToCVAnalysis = () => {
     width: 90%;
     max-height: 60vh;
   }
+}
+
+/* Loading, Error, and Empty States */
+.loading-state,
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  min-height: 300px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-icon,
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.error-state p,
+.empty-state p {
+  color: #666;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.error-state .btn,
+.empty-state .btn {
+  margin-top: 1rem;
 }
 </style>

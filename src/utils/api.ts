@@ -43,16 +43,16 @@ api.interceptors.response.use(
 
 // Generic API methods
 export const apiClient = {
-  get: <T = any>(url: string, params?: any): Promise<ApiResponse<T>> =>
+  get: <T = any>(url: string, params?: any): Promise<T> =>
     api.get(url, { params }).then(res => res.data),
     
-  post: <T = any>(url: string, data?: any): Promise<ApiResponse<T>> =>
+  post: <T = any>(url: string, data?: any): Promise<T> =>
     api.post(url, data).then(res => res.data),
     
-  put: <T = any>(url: string, data?: any): Promise<ApiResponse<T>> =>
+  put: <T = any>(url: string, data?: any): Promise<T> =>
     api.put(url, data).then(res => res.data),
     
-  delete: <T = any>(url: string): Promise<ApiResponse<T>> =>
+  delete: <T = any>(url: string): Promise<T> =>
     api.delete(url).then(res => res.data),
     
   getPaginated: <T = any>(url: string, params?: any): Promise<PaginatedResponse<T>> =>
